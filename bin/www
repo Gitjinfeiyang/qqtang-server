@@ -1,0 +1,198 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+var fs=require("fs")
+var app = require('../app');
+var debug = require('debug')('qqtang-server:server');
+var https = require('https');
+var socket=require('../io')
+var cer={
+  key: `-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAkP9bAtsF09eFE+qLxrOs78iN0xvHc4EmlbrBPnVUSFLm3zkh
++tsIrmnm7+na2b256NSJX+v5Z58bEGO1jFSQ5B3eEfCWckIkCXDXdwCzuHqE49RP
+xXnsq9BexmyE5G3tVtuJelHkDBVqXK/ZMRe1qdWsMMKElPPYcqV6/Sip3OxBWnBC
+SuhgDehqzTe4kI8hxp6ow0AnxSvoHAuzwGPVZ0DhVp+0s6KM1ZH70RwUcNciJLEw
+IeaDXW8UKD25ASv3aL7wpxBAChACDS92mxouo3h4JXPpi/RX9JeSP51j7EFiH446
++0jq+mv7AbnoI6F/G994SXkUDd/Z84LUcfi7LwIDAQABAoIBAH5rZbqTo/0Tx5+Z
+u8y/E2TtA1qwubFnRXD+p0YBnj6AqXKuqYXCO0t2YjeDOaDm3pS12iCb6ZQDEOG1
+TbDQepOpxtj1Xva33BuvGu1S219Y00yg6/xNVaBnyHpQW32eqnQ0bSUNCTvP4DB3
+0XIQLf+poLvSnS4RfQJYbWcUcSWANC91t+bimWrSLDx1aQnLUeg0kDPjJwhD/ed4
+ZuDztTMsxkZyEIFnzR56VnfXtA2I7SNcWyTHo5EVj1RTh4j2OdjSHQDoF/u2Zs8x
+qoAP1fVfg1bm7eyDQQTaWtZ4MqVu785jW9L3Wjh2jgt4yeWLyjCR1tqccoDDcWMk
+Nza0v0ECgYEA3Xvn554LfHEfyuH9wSH8RfUlvTFwiLsW9Tq+mbfENEAw19Dd/0th
+Pjj/rhmd/pCmInvt0cgZ00ensmlqYTGMa9mls29+emR/du1k8L5f5nik0r5PuFFC
+e3rEuaybGszrNWfyTJKrvPm0DkOU/fsQPOstQOamh7MT8OGq2EBhktkCgYEAp5gF
+9vFYZgjLdd1ZKPyc8xBT6WYtMOsHf5RWqTKZwn2O1sYlGkS3cr9yr9eB5y+vIcLr
+xNpsXIjcncEI8e20W01iAfmYE4OO2Pu7bQi2hwKtZlQUz/402yrLluP2QXZ/LBDu
+O2eBrwi5wmeOP2E5ybBByIHmgdRmJVyoABZeaUcCgYA2ryIJ4M6rMe8Mk5GofrCf
+wTBJLwy+5Zp8f72RjHrH/9VPY8V8A+uFhmMyZCbLNIGgYALO2d3ueXGhLj/SsX4f
+HsS3sd6Db469GU3j1s0sxTrEwbJDKuUEQcKSqVg+XLvyGrELUOdQKELZhrwhnTxc
+HiC1Nn2FYaSZw83/yJ2OuQKBgQCTstHG4MnUGnoc5Lc3/PDg8YnSDx9Slj8ke3mo
+YZTKp9bjhvqZ3OeDdB/Bwn6UXRzN9zfLY+fN4Tv0t3OHqsKhGGCAdxREVlPk/G0g
+WWZrM7vXi9BPwauZX2zPDRYweRr4ne8mYUEUHe9/2b2uM6Q3EGPZLkoULzjaQn84
+nH4V7wKBgEZ1NNVy5COUpLhFYgDsD2lfXz1ZPXVOdeRMq1lwEp1kXiduTySoJLy3
+5idLrfs2xS7JtFjHCqBgb8dM+XLg0bdIxM0BeCrKh3oU+RrkwB2kBwd2itUt/fDk
+wJawdP0Ilq46gtC22JAaVlIn8oJ4njjfy67AdQRy856f0TrxCClR
+-----END RSA PRIVATE KEY-----`,
+  cert: `-----BEGIN CERTIFICATE-----
+MIIFozCCBIugAwIBAgIQCZGNPhGs1Zp7nE0dMgz/SDANBgkqhkiG9w0BAQsFADBu
+MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+d3cuZGlnaWNlcnQuY29tMS0wKwYDVQQDEyRFbmNyeXB0aW9uIEV2ZXJ5d2hlcmUg
+RFYgVExTIENBIC0gRzEwHhcNMTgwNzEyMDAwMDAwWhcNMTkwNzEyMTIwMDAwWjAo
+MSYwJAYDVQQDEx1qaW5mZWl5YW5nLnRvcC5qaW5mZWl5YW5nLnRvcDCCASIwDQYJ
+KoZIhvcNAQEBBQADggEPADCCAQoCggEBAJD/WwLbBdPXhRPqi8azrO/IjdMbx3OB
+JpW6wT51VEhS5t85IfrbCK5p5u/p2tm9uejUiV/r+WefGxBjtYxUkOQd3hHwlnJC
+JAlw13cAs7h6hOPUT8V57KvQXsZshORt7VbbiXpR5AwValyv2TEXtanVrDDChJTz
+2HKlev0oqdzsQVpwQkroYA3oas03uJCPIcaeqMNAJ8Ur6BwLs8Bj1WdA4VaftLOi
+jNWR+9EcFHDXIiSxMCHmg11vFCg9uQEr92i+8KcQQAoQAg0vdpsaLqN4eCVz6Yv0
+V/SXkj+dY+xBYh+OOvtI6vpr+wG56COhfxvfeEl5FA3f2fOC1HH4uy8CAwEAAaOC
+AoEwggJ9MB8GA1UdIwQYMBaAFFV0T7JyT/VgulDR1+ZRXJoBhxrXMB0GA1UdDgQW
+BBT7R3O5oUUCHsAcRfHiTkvabdiy0TAoBgNVHREEITAfgh1qaW5mZWl5YW5nLnRv
+cC5qaW5mZWl5YW5nLnRvcDAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYB
+BQUHAwEGCCsGAQUFBwMCMEwGA1UdIARFMEMwNwYJYIZIAYb9bAECMCowKAYIKwYB
+BQUHAgEWHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwCAYGZ4EMAQIBMIGB
+BggrBgEFBQcBAQR1MHMwJQYIKwYBBQUHMAGGGWh0dHA6Ly9vY3NwMi5kaWdpY2Vy
+dC5jb20wSgYIKwYBBQUHMAKGPmh0dHA6Ly9jYWNlcnRzLmRpZ2ljZXJ0LmNvbS9F
+bmNyeXB0aW9uRXZlcnl3aGVyZURWVExTQ0EtRzEuY3J0MAkGA1UdEwQCMAAwggED
+BgorBgEEAdZ5AgQCBIH0BIHxAO8AdgCkuQmQtBhYFIe7E6LMZ3AKPDWYBPkb37jj
+d80OyA3cEAAAAWSMiij2AAAEAwBHMEUCIQCQLKE0diLuFXl3kBCUb2P5eEuacISp
+paMjLpxpPnNeyAIgH7hRfDd+7Sc/xiPvOkzpixzo2ZKS+hc7Hksd/mbpXYsAdQCH
+db/nWXz4jEOZX73zbv9WjUdWNv9KtWDBtOr/XqCDDwAAAWSMiinSAAAEAwBGMEQC
+IB9/SsjeUWdh9OT2t7DAfkNtouD0SSHBlQPrhgxeAxqJAiAuG0EdPYGqGCyr1MUb
+UL54Qj82XcLWf/gs10VSdL46jDANBgkqhkiG9w0BAQsFAAOCAQEATciQ1TCefGu2
+qCJRnr5EaBEsaV0Z6eF5fvgITuGPd0ghTuIIaM1IrGApNq9onz+1BOtLb2QJyKf4
+WP+y9MfPjVssXS7vhqtdevkW1CK82j0Lj/C1kGgUUIujwdV7TATl3w5GsOxB8Hxn
+PLmRGeMcZ1Ju+SPqKtfLVd6PzdVjAQI8Zm6VoUJNvos+fH+N5ANrN8YwW+mUXUcF
+HOQLV/3uIJ/5XB/xas2j0piiCJ5MoGmUkMVcKEwLsVK7Cyy+kVIS+A+fb88T58g2
+M8qX9ZA++M+na7C1ZSQb9xrpWPFVu+D2PWZD0lVh3jc1To3MizJDuqpmTXesN4sB
+B9NRiZlCeQ==
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIIEqjCCA5KgAwIBAgIQAnmsRYvBskWr+YBTzSybsTANBgkqhkiG9w0BAQsFADBh
+MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD
+QTAeFw0xNzExMjcxMjQ2MTBaFw0yNzExMjcxMjQ2MTBaMG4xCzAJBgNVBAYTAlVT
+MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
+b20xLTArBgNVBAMTJEVuY3J5cHRpb24gRXZlcnl3aGVyZSBEViBUTFMgQ0EgLSBH
+MTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALPeP6wkab41dyQh6mKc
+oHqt3jRIxW5MDvf9QyiOR7VfFwK656es0UFiIb74N9pRntzF1UgYzDGu3ppZVMdo
+lbxhm6dWS9OK/lFehKNT0OYI9aqk6F+U7cA6jxSC+iDBPXwdF4rs3KRyp3aQn6pj
+pp1yr7IB6Y4zv72Ee/PlZ/6rK6InC6WpK0nPVOYR7n9iDuPe1E4IxUMBH/T33+3h
+yuH3dvfgiWUOUkjdpMbyxX+XNle5uEIiyBsi4IvbcTCh8ruifCIi5mDXkZrnMT8n
+wfYCV6v6kDdXkbgGRLKsR4pucbJtbKqIkUGxuZI2t7pfewKRc5nWecvDBZf3+p1M
+pA8CAwEAAaOCAU8wggFLMB0GA1UdDgQWBBRVdE+yck/1YLpQ0dfmUVyaAYca1zAf
+BgNVHSMEGDAWgBQD3lA1VtFMu2bwo+IbG8OXsj3RVTAOBgNVHQ8BAf8EBAMCAYYw
+HQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMBIGA1UdEwEB/wQIMAYBAf8C
+AQAwNAYIKwYBBQUHAQEEKDAmMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdp
+Y2VydC5jb20wQgYDVR0fBDswOTA3oDWgM4YxaHR0cDovL2NybDMuZGlnaWNlcnQu
+Y29tL0RpZ2lDZXJ0R2xvYmFsUm9vdENBLmNybDBMBgNVHSAERTBDMDcGCWCGSAGG
+/WwBAjAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BT
+MAgGBmeBDAECATANBgkqhkiG9w0BAQsFAAOCAQEAK3Gp6/aGq7aBZsxf/oQ+TD/B
+SwW3AU4ETK+GQf2kFzYZkby5SFrHdPomunx2HBzViUchGoofGgg7gHW0W3MlQAXW
+M0r5LUvStcr82QDWYNPaUy4taCQmyaJ+VB+6wxHstSigOlSNF2a6vg4rgexixeiV
+4YSB03Yqp2t3TeZHM9ESfkus74nQyW7pRGezj+TC44xCagCQQOzzNmzEAP2SnCrJ
+sNE2DpRVMnL8J6xBRdjmOsC3N6cQuKuRXbzByVBjCqAA8t1L0I+9wXJerLPyErjy
+rMKWaBFLmfK/AHNF4ZihwPGOc7w6UHczBZXH5RFzJNnww+WnKuTPI0HfnVH8lg==
+-----END CERTIFICATE-----`
+}
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+// var server = http.createServer(app);
+var server=https.createServer(cer,app)
+
+//init socket.io
+socket(server)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
