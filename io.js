@@ -62,8 +62,7 @@ class Player {
 
 
 			if(!joined){
-				let r=new Room({id:Math.random()})
-				rooms.push(r)
+				let r = createRoom()
 				self.join(r)
 			}
 
@@ -239,6 +238,7 @@ const teams={
 	black:'black'
 }
 const room2Teams=[{color:teams.red,col:3,row:1},{color:teams.blue,col:14,row:1}]
+// 房间
 class Room {
 	constructor(props){
 		this.id=props.id;
@@ -295,6 +295,7 @@ class Room {
 	}
 }
 
+// 地图物体
 class Material {
 	constructor(props){
 		this.id=Math.random()
@@ -307,6 +308,7 @@ class Material {
 	}
 }
 
+// 药物
 class Medicine {
 	constructor(props){
 		this.id=Math.random();
@@ -316,14 +318,16 @@ class Medicine {
 	}
 }
 
+
 let medicine=['add_speed','add_bubble','add_bubble_radius']
+// 返回一个随机药物
 function getRandomMedicine(){
 	let length=medicine.length; 
 	let num=Math.floor(Math.random()*(length*2));
 	return medicine[num]||null
 }
 
-
+// 获取地图所有药物
 function getMapMedicines(row,col){
 	let count=row*col;
 	let medicines=[]
@@ -341,7 +345,7 @@ function getMapMedicines(row,col){
 let io={};
 
 
-
+// socket初始化
 const socketServer=function(server){
 	io=socketio(server)
 
@@ -357,13 +361,15 @@ const socketServer=function(server){
 
 }
 
-
+// 返回所有房间
 function getRooms(){
 	return rooms
 }
 
+// 创建一个房间加入队列
 function createRoom(){
-	
+	let r = new Room({ id: Math.random() })
+	rooms.push(r)
 }
 
 
