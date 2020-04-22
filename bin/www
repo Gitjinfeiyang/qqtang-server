@@ -6,8 +6,8 @@
 var fs=require("fs")
 var app = require('../app');
 var debug = require('debug')('qqtang-server:server');
-var https = require('https');
-var socket=require('../io')
+var http = require('http');
+var socketServer=require('../io')
 var cer={
   key: `-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAkP9bAtsF09eFE+qLxrOs78iN0xvHc4EmlbrBPnVUSFLm3zkh
@@ -108,11 +108,11 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-// var server = http.createServer(app);
-var server=https.createServer(cer,app)
+var server = http.createServer(app);
+// var server=https.createServer(cer,app)
 
 //init socket.io
-socket(server)
+socketServer.socket(server)
 
 
 

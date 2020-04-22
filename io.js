@@ -358,9 +358,18 @@ const socketServer=function(server){
 }
 
 
+function getRooms(){
+	return rooms
+}
+
+function createRoom(){
+	
+}
 
 
 
 
-
-module.exports=socketServer;
+module.exports={
+	socket:socketServer,
+	getRooms
+};
