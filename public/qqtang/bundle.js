@@ -62,7 +62,7 @@
 /******/ 	}
 /******/
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "6b98aee9f37b8835b1a5"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "48d109482e60d7727f27"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -1265,6 +1265,8 @@ var Grid = function () {
             var restart = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.restart_button]));
             this.restartPage.addChild(restart);
             restart.interactive = true;
+            restart.x = (this.w - restart.width) / 2;
+            restart.y = (this.h - restart.height) / 2;
             restart.on(event.click, function (event) {
                 _this3.restartPage.visible = false;
                 // this.self.restart()
@@ -1292,8 +1294,8 @@ var Grid = function () {
         key: "initMap",
         value: function initMap(options) {
             this.map = new PIXI.Container();
-            this.map.width = this.w = parseInt(options.width);
-            this.map.height = this.h = parseInt(options.height);
+            this.map.width = this.w = options.width;
+            this.map.height = this.h = options.height;
             this.map.x = (window.innerWidth - options.width) / 2;
             this.map.y = (window.innerHeight - options.height) / 2;
             this.app.stage.addChild(this.map);
@@ -2600,10 +2602,14 @@ var player = null;
 var noticeEle = new PIXI.Container();
 var text = new PIXI.Text();
 var noticeTimeout = null;
-text.style.padding = 10;
+text.style.padding = 20;
+text.style.fontSize = 30;
 text.style.align = "center";
 text.style.fill = 0xffffff;
-text.visible = false;
+text.style.stroke = 0x000000;
+text.style.strokeThickness = 4;
+text.position.x = 20;
+text.position.y = 20;
 noticeEle.addChild(text);
 function start(socket) {
     Server.socket = socket;
@@ -3405,7 +3411,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const socket = _static_socket_io_min_js__WEBPACK_IMPORTED_MODULE_0___default()('http://localhost:3003');
+const socket = _static_socket_io_min_js__WEBPACK_IMPORTED_MODULE_0___default()('');
 // const socket = io('http://10.10.71.238:3003');
 // var ws = new WebSocket("wss://jinfeiyang.top:3003");
 // ws.onopen=function(){

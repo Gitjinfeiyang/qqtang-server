@@ -60,7 +60,6 @@ class Player {
 				}
 			})
 
-
 			if(!joined){
 				let r = createRoom()
 				self.join(r)
@@ -237,7 +236,12 @@ const teams={
 	blue:'blue',
 	black:'black'
 }
-const room2Teams=[{color:teams.red,col:3,row:1},{color:teams.blue,col:14,row:1}]
+const roomTeams=[
+	{color:teams.red,col:3,row:1},
+	{color:teams.blue,col:14,row:1},
+	{color:teams.red,col:3,row:1},
+	{color:teams.blue,col:14,row:1}
+]
 // 房间
 class Room {
 	constructor(props){
@@ -262,7 +266,7 @@ class Room {
 	addPlayer(player){
 	
 		this.players.push(player)
-		let teamData=room2Teams[this.players.length-1]
+		let teamData=roomTeams[this.players.length-1]
 		player.team=teamData.color;
 		player.col=teamData.col;
 		player.row=teamData.row;
@@ -370,6 +374,7 @@ function getRooms(){
 function createRoom(){
 	let r = new Room({ id: Math.random() })
 	rooms.push(r)
+	return r
 }
 
 

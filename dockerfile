@@ -1,7 +1,10 @@
 FROM node:12.16.2-buster
 
-RUN npm install
+WORKDIR /app
+COPY . /app
+
+RUN npm install && npm install pm2 -g
 
 EXPOSE 3003
 
-CMD ['npm','start']
+CMD pm2 start bin/www --no-daemon
