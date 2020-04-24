@@ -3422,7 +3422,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const socket = _static_socket_io_min_js__WEBPACK_IMPORTED_MODULE_0___default()('http://localhost:3003');
+const socket = _static_socket_io_min_js__WEBPACK_IMPORTED_MODULE_0___default()('');
 // const socket = io('http://10.10.71.238:3003');
 // var ws = new WebSocket("wss://jinfeiyang.top:3003");
 // ws.onopen=function(){
